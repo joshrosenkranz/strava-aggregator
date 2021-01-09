@@ -1,5 +1,5 @@
-import os
 import fitparse
+import os
 
 mit_lat = 42.35785
 mit_lon = -71.09708
@@ -13,22 +13,22 @@ def main():
     except IOError:
         print("Please run setup.py and ensure the activity_dir.txt file contains a valid path")
         return
+
     files = os.listdir(activity_dir)
     fit_files = [activity for activity in files if activity[-4:].lower()=='.fit']
     num_fit_files = len(fit_files)
     num_files_parsed = 0
-    pct_threshold_to_print = 10
     for activity in fit_files:
         fraction_complete = num_files_parsed * 1.0 / num_fit_files
         fraction_complete = round(fraction_complete * 100)
-        if fraction_complete > pct_threshold_to_print:
-            pct_threshold_to_print += 10
+        if num_files_parsed % 10 == 0:
             print("Finished parsing " + str(fraction_complete) + "% of files")
         activity_file = os.path.join(activity_dir, activity)
         fitfile = fitparse.FitFile(activity_file,  
             data_processor=fitparse.StandardUnitsDataProcessor())
         
         first_gps_point_found = False
+        in_boston = False
         messages = fitfile.messages
         for m in messages:
             if not hasattr(m, 'fields'):
@@ -44,12 +44,16 @@ def main():
             if lat and lon:
                 dist_to_mit_km = haversine(mit_lat, mit_lon, lat, lon)
                 if dist_to_mit_km < dist_threshold_km:
-                    activities_in_boston.append(activity)
+                    in_boston = True
                 break
-        num_files_parsed += 1
 
-    print(activities_in_boston)
-    return activities_in_boston
+        if in_boston:
+            print("Keeping", activity_file)
+        else:
+            print("Removing", activity_file)
+            os.remove(activity_file)
+
+        num_files_parsed += 1
 
 def haversine(lat1, lon1, lat2, lon2):
     from math import sin, cos, sqrt, atan2, radians
