@@ -1,8 +1,11 @@
 import os
 import subprocess
 
-subprocess.call("sudo pip2 install -e git+https://github.com/dtcooper/python-fitparse#egg=python-fitparse", shell=True)
-subprocess.call("sudo pip3 install -e git+https://github.com/dtcooper/python-fitparse#egg=python-fitparse", shell=True)
+try:
+    import fitparse
+except ImportError:
+    subprocess.call("sudo pip2 install -e git+https://github.com/dtcooper/python-fitparse#egg=python-fitparse", shell=True)
+    subprocess.call("sudo pip3 install -e git+https://github.com/dtcooper/python-fitparse#egg=python-fitparse", shell=True)
 
 try:
     input = raw_input
