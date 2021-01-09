@@ -1,0 +1,1 @@
+http://localhost/exchange_token?state=&code=fd293dd252466dd18649dd1ced959ea09bd2ed96&scope=read,activity:write,profile:write
