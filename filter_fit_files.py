@@ -9,12 +9,19 @@ def main():
     activities_in_boston = []
     try:
         f = open("activity_dir.txt", "r")
-        activity_dir = f.read().strip().rstrip("/") + "_unzipped"
+        activity_dir = f.read().strip().rstrip("/")
+        unzipped_activity_dir = activity_dir + "_unzipped"
+        boston_activity_dir = activity_dir + "_boston"
+        not_in_boston_activity_dir = activity_dir + "_not_in_boston"
+        if not os.path.exists(boston_activity_dir):
+            os.mkdir(boston_activity_dir)
+        if not os.path.exists(not_in_boston_activity_dir):
+            os.mkdir(not_in_boston_activity_dir)
     except IOError:
         print("Please run setup.py and ensure the activity_dir.txt file contains a valid path")
         return
 
-    files = os.listdir(activity_dir)
+    files = os.listdir(unzipped_activity_dir)
     fit_files = [activity for activity in files if activity[-4:].lower()=='.fit']
     num_fit_files = len(fit_files)
     num_files_parsed = 0
@@ -23,7 +30,7 @@ def main():
         fraction_complete = round(fraction_complete * 100)
         if num_files_parsed % 10 == 0:
             print("Finished parsing " + str(fraction_complete) + "% of files")
-        activity_file = os.path.join(activity_dir, activity)
+        activity_file = os.path.join(unzipped_activity_dir, activity)
         fitfile = fitparse.FitFile(activity_file,  
             data_processor=fitparse.StandardUnitsDataProcessor())
         
@@ -49,9 +56,10 @@ def main():
 
         if in_boston:
             print("Keeping", activity_file)
+            os.rename(activity_file, os.path.join(boston_activity_dir, activity))
         else:
             print("Removing", activity_file)
-            os.remove(activity_file)
+            os.rename(activity_file, os.path.join(not_in_boston_activity_dir, activity))
 
         num_files_parsed += 1
 
