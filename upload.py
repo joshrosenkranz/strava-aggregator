@@ -1,11 +1,17 @@
+from datetime import datetime
 import json
 import os
 import subprocess
+import time
 
 def main():
     try:
         f = open("activity_dir.txt", "r")
-        activity_dir = f.read().strip().rstrip("/") + "_unzipped"
+        original_dir = f.read().strip().rstrip("/")
+        activity_dir = original_dir + "_unzipped"
+        completed_activity_dir = original_dir + "_uploaded"
+        if not os.path.exists(completed_activity_dir):
+            os.mkdir(completed_activity_dir)
     except IOError:
         print("Please run setup.py and ensure the activity_dir.txt file contains a valid path")
         return
@@ -25,8 +31,17 @@ def main():
             -F file=@" + activity_path],
             shell=True, stdout=subprocess.PIPE)
         (out, err) = proc.communicate()
-        if '"id"' in out.decode("utf-8"):
+        out = out.decode("utf-8")
+        if '"id"' in out:
             print("Activity successfully uploaded!")
+            os.rename(os.path.join(activity_dir, activity),
+                      os.path.join(completed_activity_dir, activity))
+        elif "Rate Limit Exceeded" in out:
+            now = datetime.now()
+            dt_string = now.strftime("%m/%d/%Y %H:%M:%S")
+            print("Rate limit reached at " + dt_string + ", waiting 15 minutes")
+            time.sleep(900)
+            print("Starting up again at " + dt_string)
         else:
             print("Error uploading activity.")
 
